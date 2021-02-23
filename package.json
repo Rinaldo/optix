@@ -1,0 +1,62 @@
+{
+    "name": "optix",
+    "version": "0.1.0",
+    "description": "Simple, tiny, typesafe object manipulation utilities with optics-like features",
+    "author": "Robert Rinaldo",
+    "license": "MIT",
+    "repository": "github:Rinaldo/optix",
+    "bugs": "https://github.com/Rinaldo/optix/issues",
+    "keywords": [
+        "optics",
+        "lens",
+        "prism",
+        "traversal",
+        "immutable",
+        "fp"
+    ],
+    "browser": "dist/optix.umd.js",
+    "main": "dist/optix.cjs.js",
+    "module": "dist/optix.esm.js",
+    "types": "dist/index.d.ts",
+    "unpkg": "dist/optix.umd.min.js",
+    "files": [
+        "/dist",
+        "/src"
+    ],
+    "scripts": {
+        "typegen": "node scripts/typegen.js",
+        "build": "npm run typegen && npm run clean && rollup -c",
+        "clean": "rimraf dist",
+        "lint": "eslint {src,test}/**/*.ts",
+        "lint-fix": "eslint {src,test}/**/*.ts --fix",
+        "prettier": "prettier --check {src,test}/**/*.ts",
+        "prettier-fix": "prettier --write {src,test}/**/*.ts",
+        "test": "npm run typegen && jest",
+        "test-watch": "npm run typegen && jest --watch",
+        "full-lint": "npm run typegen && npm run lint && npm run prettier",
+        "full-test": "npm run typegen && npm run lint && npm run prettier && npm run test",
+        "coverage": "npm run typegen && jest --collectCoverage"
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.15.2",
+        "@typescript-eslint/parser": "^4.15.2",
+        "eslint": "^7.20.0",
+        "eslint-config-prettier": "^8.0.0",
+        "husky": "^4.3.6",
+        "jest": "^26.6.3",
+        "prettier": "2.2.1",
+        "rimraf": "^3.0.2",
+        "rollup": "^2.39.0",
+        "rollup-plugin-terser": "^7.0.2",
+        "rollup-plugin-typescript2": "^0.30.0",
+        "ts-jest": "^26.5.1",
+        "typescript": "^4.1.4"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run full-lint",
+            "pre-push": "npm run full-test"
+        }
+    },
+    "sideEffects": false
+}
