@@ -1,6 +1,6 @@
 # Optix
 
-`npm install curried-redux`
+`npm install optix`
 
 **Simple, tiny, typesafe object manipulation utilities with optics-like features**
 

@@ -1,12 +1,4 @@
 {
-  "compilerOptions": {
-    "declaration": true,
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "outDir": "./lib",
-    "strict": true,
-    "target": "ES6",
-    "noImplicitAny": false,
-  },
-  "include": ["src/**/*"]
+    "extends": "./tsconfig.build.json",
+    "include": ["src/**/*", "test/**/*"]
 }

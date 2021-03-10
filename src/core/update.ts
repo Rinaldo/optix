@@ -1,6 +1,10 @@
 import { BaseUpdate } from "../types"
 
-export const update: BaseUpdate = (obj, path, updater) => {
+export const update: BaseUpdate = (
+    obj: any,
+    path: any[],
+    updater: (arg: any) => any
+) => {
     if (!path.length) {
         return updater(obj as any)
     }
@@ -13,8 +17,8 @@ export const update: BaseUpdate = (obj, path, updater) => {
             : Array.isArray(resolved)
             ? resolved
             : []
-    // check for invalid path, prevents unexpected behavior if find return -1 or undefined
-    if (keysToUpdate[0] == null || keysToUpdate[0] === -1) {
+    // check for invalid path
+    if (keysToUpdate[0] == null || keysToUpdate[0] < 0) {
         return obj
     }
     const treatObjAsArray = typeof keysToUpdate[0] === "number"

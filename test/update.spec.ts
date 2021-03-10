@@ -1,236 +1,302 @@
-import { update, all, find, filter, filterByKey } from "../src"
-import {
-    alice,
-    nestedArr,
-    nestedObj,
-    users,
-    posts,
-    User,
-    Post,
-} from "./_testObjects"
+import { update, all, filter } from "../src"
+
+const nested = { a: { b: { c: { d: { e: { f: true } } } } } }
+const user = {
+    name: "Alice",
+    age: 22,
+    posts: [
+        {
+            title: "Tea with the Hatter",
+            tags: ["wonderland"],
+        },
+        {
+            title: "foo",
+            tags: ["a", "b", "c"],
+        },
+        {
+            title: "bar",
+            tags: ["d", "e", "f"],
+        },
+        {
+            title: "baz",
+            tags: ["g", "h", "i"],
+        },
+    ],
+}
 
 describe("The update function", () => {
     it("can update single items", () => {
-        const t1: typeof nestedObj = update(
+        const a: typeof nested = update(
             "a",
             "b",
             "c",
             "d",
-            "e",
-            "f"
-        )<{ g: boolean }>((o) => ({ ...o, g: false }))(nestedObj)
-        expect(t1).toEqual({
-            a: { b: { c: { d: { e: { f: { g: false } } } } } },
+            "e"
+        )<{ f: boolean }>((o) => ({ ...o, f: false }))(nested)
+        expect(a).toEqual({
+            a: { b: { c: { d: { e: { f: false } } } } },
         })
 
-        const t2: User = update("posts", 0, "tags", 0)(() => "b")(alice)
-        expect(t2).toEqual({
-            ...alice,
-            posts: posts.map((post, i) =>
-                i === 0 ? { ...post, tags: ["b", "b", "c"] } : post
-            ),
+        const b: typeof user = update(
+            "posts",
+            0,
+            "tags",
+            0
+        )((tag: string) => tag.toUpperCase())(user)
+        expect(b).toEqual({
+            name: "Alice",
+            age: 22,
+            posts: [
+                {
+                    title: "Tea with the Hatter",
+                    tags: ["WONDERLAND"],
+                },
+                {
+                    title: "foo",
+                    tags: ["a", "b", "c"],
+                },
+                {
+                    title: "bar",
+                    tags: ["d", "e", "f"],
+                },
+                {
+                    title: "baz",
+                    tags: ["g", "h", "i"],
+                },
+            ],
         })
     })
 
     it("can update multiple items", () => {
-        const t1: User = update(
+        const a: typeof user = update(
             "posts",
-            [3, 4, 8],
+            [1, 3],
             "title"
-        )<string>((title) => title + " New")(alice)
-        expect(t1).toEqual({
-            ...alice,
-            posts: posts.map((post, i) =>
-                i === 3 || i === 4 || i === 8
-                    ? { ...post, title: post.title + " New" }
-                    : post
-            ),
+        )<string>((tag) => tag.toUpperCase())(user)
+        expect(a).toEqual({
+            name: "Alice",
+            age: 22,
+            posts: [
+                {
+                    title: "Tea with the Hatter",
+                    tags: ["wonderland"],
+                },
+                {
+                    title: "FOO",
+                    tags: ["a", "b", "c"],
+                },
+                {
+                    title: "bar",
+                    tags: ["d", "e", "f"],
+                },
+                {
+                    title: "BAZ",
+                    tags: ["g", "h", "i"],
+                },
+            ],
         })
 
-        const t2: User[] = update([0, 1], "posts", 0, "tags", [1, 2])<string>(
-            () => "d"
-        )(users)
-        expect(t2).toEqual(
-            users.map((user, idx) =>
-                idx === 0 || idx === 1
-                    ? {
-                          ...user,
-                          posts: posts.map((post, i) =>
-                              i === 0
-                                  ? { ...post, tags: ["a", "d", "d"] }
-                                  : post
-                          ),
-                      }
-                    : user
-            )
-        )
-
-        const t3: typeof nestedArr = update(
-            [0, 1],
-            0,
-            0,
-            0
-        )<boolean>((bool) => !bool)(nestedArr)
-        expect(t3).toEqual([[[[false, true]]], [[[false, true]]]])
-
-        const t4: User = update(
-            "posts",
-            find<Post[]>((post) => post.id === 4),
-            "title"
-        )<string>(() => "new title")(alice)
-        expect(t4).toEqual({
-            ...alice,
-            posts: posts.map((post, i) =>
-                i === 4 ? { ...post, title: "new title" } : post
-            ),
+        const b: typeof user = update("posts", [1, 3], "tags", [1, 2])<string>(
+            (tag) => tag.toUpperCase()
+        )(user)
+        expect(b).toEqual({
+            name: "Alice",
+            age: 22,
+            posts: [
+                {
+                    title: "Tea with the Hatter",
+                    tags: ["wonderland"],
+                },
+                {
+                    title: "foo",
+                    tags: ["a", "B", "C"],
+                },
+                {
+                    title: "bar",
+                    tags: ["d", "e", "f"],
+                },
+                {
+                    title: "baz",
+                    tags: ["g", "H", "I"],
+                },
+            ],
         })
+
+        const nestedArr = [
+            [
+                [true, true],
+                [false, false],
+            ],
+            [
+                [true, true],
+                [false, false],
+            ],
+        ]
+
+        const c: typeof nestedArr = update([0, 1], 1, [0, 1])<boolean>(
+            (bool) => !bool
+        )(nestedArr)
+        expect(c).toEqual([
+            [
+                [true, true],
+                [true, true],
+            ],
+            [
+                [true, true],
+                [true, true],
+            ],
+        ])
     })
 
     it("works with the helper functions", () => {
-        const t1: User = update(
+        const a: typeof user = update(
             "posts",
-            filter<Post[]>((post) => post.id >= 3 && post.id <= 4),
+            filter<typeof user.posts>((post) => post.title.startsWith("f")),
             "title"
-        )<string>(() => "new title")(alice)
-        expect(t1).toEqual({
-            ...alice,
-            posts: posts.map((post, i) =>
-                i === 3 || i === 4 ? { ...post, title: "new title" } : post
-            ),
+        )<string>((title) => title.toUpperCase())(user)
+        expect(a).toEqual({
+            name: "Alice",
+            age: 22,
+            posts: [
+                {
+                    title: "Tea with the Hatter",
+                    tags: ["wonderland"],
+                },
+                {
+                    title: "FOO",
+                    tags: ["a", "b", "c"],
+                },
+                {
+                    title: "bar",
+                    tags: ["d", "e", "f"],
+                },
+                {
+                    title: "baz",
+                    tags: ["g", "h", "i"],
+                },
+            ],
         })
 
-        const t2: User = update("posts", all, "id")<number>((n) => n + 1)(alice)
-        expect(t2).toEqual({
-            ...alice,
-            posts: posts.map((post) => ({ ...post, id: post.id + 1 })),
+        const b: typeof user = update(
+            "posts",
+            all,
+            "tags"
+        )<string[]>((n) => n.concat(["test"]))(user)
+        expect(b).toEqual({
+            name: "Alice",
+            age: 22,
+            posts: [
+                {
+                    title: "Tea with the Hatter",
+                    tags: ["wonderland", "test"],
+                },
+                {
+                    title: "foo",
+                    tags: ["a", "b", "c", "test"],
+                },
+                {
+                    title: "bar",
+                    tags: ["d", "e", "f", "test"],
+                },
+                {
+                    title: "baz",
+                    tags: ["g", "h", "i", "test"],
+                },
+            ],
         })
     })
 
-    it("works for paths more than 6 items long (without typings)", () => {
-        const t11 = update("a", "b", "c", "d", "e", "f", "g")((bool) => !bool)(
-            nestedObj
-        )
-        expect(t11).toEqual({
-            a: { b: { c: { d: { e: { f: { g: false } } } } } },
+    it("works for paths more than 5 items long (without typings)", () => {
+        const a = update("a", "b", "c", "d", "e", "f")((bool) => !bool)(nested)
+        expect(a).toEqual({
+            a: { b: { c: { d: { e: { f: false } } } } },
         })
     })
 
-    it("supports updating multiple string keys (without typings)", () => {
-        const t12 = (update as any)("location", [
-            "city",
-            "state",
-        ])((val: string) => val.toLowerCase())(alice)
-        expect(t12).toEqual({
-            ...alice,
-            location: {
-                ...alice.location,
-                city: "boulder",
-                state: "co",
-            },
-        })
+    it("can update values for keys for not present in the object (without typings, updater will be passed undefined)", () => {
+        const untypedUpdate: any = update
 
-        const t14 = (update as any)(
-            filterByKey((key) => key === "name")
-        )((name: string) => name.toUpperCase())(alice)
-        expect(t14).toEqual({
-            ...alice,
-            name: "ALICE",
-        })
-    })
-
-    it("can update values for keys for not present in the office (without typings, updater will be passed undefined)", () => {
-        const t1 = (update as any)("foo")(() => 42)(alice)
-        expect(t1).toEqual({
-            ...alice,
+        const a = untypedUpdate("foo")(() => 42)(user)
+        expect(a).toEqual({
+            ...user,
             foo: 42,
         })
 
-        const t2 = (update as any)("foo", "bar", "baz")(() => true)(alice)
-        expect(t2).toEqual({
-            ...alice,
+        const b = untypedUpdate("foo", "bar", "baz")(() => true)(user)
+        expect(b).toEqual({
+            ...user,
             foo: { bar: { baz: true } },
         })
 
-        const t3 = (update as any)("arr", 0, "nested", 0, "inner")(() => true)(
-            alice
+        const c = untypedUpdate("arr", 0, "nested", 0, "inner")(() => true)(
+            user
         )
-        expect(t3).toEqual({
-            ...alice,
+        expect(c).toEqual({
+            ...user,
             arr: [{ nested: [{ inner: true }] }],
         })
 
-        const t4 = (update as any)("location", "foo", "bar")(() => true)(alice)
-        expect(t4).toEqual({
-            ...alice,
-            location: {
-                ...alice.location,
-                foo: {
-                    bar: true,
-                },
-            },
-        })
-
         const mock = jest.fn()
-
-        ;(update as any)("foo")(mock)(alice)
+        untypedUpdate("foo")(mock)(user)
         expect(mock).toHaveBeenCalledWith(undefined)
     })
 
     it("can change the type of values (without typings)", () => {
+        const untypedUpdate: any = update
         const mock = jest.fn().mockReturnValue("test")
 
-        const t1 = (update as any)("age")(mock)(alice)
-        expect(t1).toEqual({
-            ...alice,
+        const a = untypedUpdate("age")(mock)(user)
+        expect(a).toEqual({
+            ...user,
             age: "test",
         })
-        expect(mock).toHaveBeenLastCalledWith(21)
+        expect(mock).toHaveBeenLastCalledWith(22)
 
-        const t2 = (update as any)("name", "foo")(mock)(alice)
-        expect(t2).toEqual({
-            ...alice,
+        const b = untypedUpdate("name", "foo")(mock)(user)
+        expect(b).toEqual({
+            ...user,
             name: { foo: "test" },
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
 
-        const t3 = (update as any)("name", 0)(mock)(alice)
-        expect(t3).toEqual({
-            ...alice,
+        const c = untypedUpdate("name", 0)(mock)(user)
+        expect(c).toEqual({
+            ...user,
             name: ["test"],
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
 
-        const t4 = (update as any)("name", 0, "foo")(mock)(alice)
-        expect(t4).toEqual({
-            ...alice,
+        const d = untypedUpdate("name", 0, "foo")(mock)(user)
+        expect(d).toEqual({
+            ...user,
             name: [{ foo: "test" }],
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
 
-        const t5 = (update as any)("age", "foo")(mock)(alice)
-        expect(t5).toEqual({
-            ...alice,
+        const e = untypedUpdate("age", "foo")(mock)(user)
+        expect(e).toEqual({
+            ...user,
             age: { foo: "test" },
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
 
-        const t6 = (update as any)("ref", "foo")(mock)(alice)
-        expect(t6).toEqual({
-            ...alice,
+        const f = untypedUpdate("ref", "foo")(mock)(user)
+        expect(f).toEqual({
+            ...user,
             ref: { foo: "test" },
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
 
-        const t7 = (update as any)("ref", 0)(mock)(alice)
-        expect(t7).toEqual({
-            ...alice,
+        const g = untypedUpdate("ref", 0)(mock)(user)
+        expect(g).toEqual({
+            ...user,
             ref: ["test"],
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
 
-        const t8 = (update as any)("fn", "foo")(mock)(alice)
-        expect(t8).toEqual({
-            ...alice,
+        const h = untypedUpdate("fn", "foo")(mock)(user)
+        expect(h).toEqual({
+            ...user,
             fn: { foo: "test" },
         })
         expect(mock).toHaveBeenLastCalledWith(undefined)
@@ -238,41 +304,35 @@ describe("The update function", () => {
         expect(mock).toHaveBeenCalledTimes(8)
     })
 
-    it("supports updating optional keys with typings", () => {
-        const partialAlice: Partial<User> = alice
-        const t1 = update(
-            "location",
-            "city"
-        )<string>((city) => city.toUpperCase())(partialAlice)
-        expect(t1.location!.city).toBe("BOULDER")
-
-        const t2 = update("posts", 0, "id")<number>((id) => id + 2)(
-            partialAlice
+    it("supports updating optional keys", () => {
+        const partialUser: Partial<typeof user> = user
+        const a = update("name")<string>((name) => name.toUpperCase())(
+            partialUser
         )
-        expect(t2.posts![0].id).toBe(2)
+        expect(a.name).toBe("ALICE")
     })
 
-    it("handles edge cases", () => {
+    it("handles empty or invalid paths", () => {
         const mock = jest.fn()
 
-        const t1 = update("posts", -1)(mock)(alice)
-        expect(t1).toEqual(alice)
+        const t1 = update("posts", -1)(mock)(user)
+        expect(t1).toEqual(user)
 
-        const t2 = update("posts", [])(mock)(alice)
-        expect(t2).toEqual(alice)
+        const t2 = update("posts", [])(mock)(user)
+        expect(t2).toEqual(user)
 
-        const t3 = update("posts", [], "title")(mock)(alice)
-        expect(t3).toEqual(alice)
+        const t3 = update("posts", [] as number[], "title")(mock)(user)
+        expect(t3).toEqual(user)
 
         const t4 = update(
             "posts",
             (undefined as unknown) as number,
             "title"
-        )(mock)(alice)
-        expect(t4).toEqual(alice)
+        )(mock)(user)
+        expect(t4).toEqual(user)
 
-        const t5 = update([])(mock)(alice.posts)
-        expect(t5).toBe(alice.posts)
+        const t5 = update([])(mock)(user.posts)
+        expect(t5).toBe(user.posts)
 
         expect(mock).not.toHaveBeenCalled()
     })

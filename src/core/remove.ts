@@ -1,6 +1,6 @@
 import { BaseRemove } from "../types"
 
-export const remove: BaseRemove = (obj, path) => {
+export const remove: BaseRemove = (obj: any, path: any[]) => {
     if (!path.length || !obj || typeof obj !== "object") {
         return obj
     }
@@ -13,7 +13,7 @@ export const remove: BaseRemove = (obj, path) => {
             ? resolved
             : []
     // check for invalid path
-    if (keysToRemove[0] == null || keysToRemove[0] === -1) {
+    if (keysToRemove[0] == null || keysToRemove[0] < 0) {
         return obj
     }
     if (path.length === 1) {
