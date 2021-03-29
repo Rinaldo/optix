@@ -184,11 +184,6 @@ describe("The remove function", () => {
         })
     })
 
-    it("works for paths more than 5 items long (without typings)", () => {
-        const a = remove("a", "b", "c", "d", "e", "f")(nested)
-        expect(a).toEqual({ a: { b: { c: { d: { e: {} } } } } })
-    })
-
     it("returns a deep copy of the object for paths that are not present", () => {
         const a = (remove as any)("blarg")(user)
         expect(a).toEqual(user)

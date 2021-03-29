@@ -206,13 +206,6 @@ describe("The update function", () => {
         })
     })
 
-    it("works for paths more than 5 items long (without typings)", () => {
-        const a = update("a", "b", "c", "d", "e", "f")((bool) => !bool)(nested)
-        expect(a).toEqual({
-            a: { b: { c: { d: { e: { f: false } } } } },
-        })
-    })
-
     it("can update values for keys for not present in the object (without typings, updater will be passed undefined)", () => {
         const untypedUpdate: any = update
 
@@ -318,21 +311,24 @@ describe("The update function", () => {
         const t1 = update("posts", -1)(mock)(user)
         expect(t1).toEqual(user)
 
-        const t2 = update("posts", [])(mock)(user)
+        const t2 = update("posts", -1, "title")(mock)(user)
         expect(t2).toEqual(user)
 
-        const t3 = update("posts", [] as number[], "title")(mock)(user)
+        const t3 = update("posts", [])(mock)(user)
         expect(t3).toEqual(user)
 
-        const t4 = update(
+        const t4 = update("posts", [] as number[], "title")(mock)(user)
+        expect(t4).toEqual(user)
+
+        const t5 = update(
             "posts",
             (undefined as unknown) as number,
             "title"
         )(mock)(user)
-        expect(t4).toEqual(user)
+        expect(t5).toEqual(user)
 
-        const t5 = update([])(mock)(user.posts)
-        expect(t5).toBe(user.posts)
+        const t6 = update([])(mock)(user.posts)
+        expect(t6).toBe(user.posts)
 
         expect(mock).not.toHaveBeenCalled()
     })

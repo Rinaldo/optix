@@ -205,12 +205,6 @@ describe("The get function", () => {
         expect(e1).toEqual([])
     })
 
-    it("works for paths more than 5 items long (without typings)", () => {
-        const a = get("a", "b", "c", "d", "e", "f")(nested)
-        const a1: boolean = a
-        expect(a1).toBe(true)
-    })
-
     it("returns undefined for paths that are not present in the object", () => {
         const a = get("blarg")({} as any)
         expect(a).toBe(undefined)
@@ -245,11 +239,20 @@ describe("The get function", () => {
         const a = get("posts", -1)(user)
         expect(a).toBe(undefined)
 
-        const b = get(
+        const b = get("posts", -1, "title")(user)
+        expect(b).toBe(undefined)
+
+        const c = get(undefined as unknown as string)(user)
+        expect(c).toBe(undefined)
+
+        const d = get("foo", undefined as unknown as string, "bar")({})
+        expect(d).toBe(undefined)
+
+        const e = get(
             "posts",
             [undefined as unknown] as number[],
             "title"
         )(user)
-        expect(b).toEqual([undefined])
+        expect(e).toEqual([undefined])
     })
 })
