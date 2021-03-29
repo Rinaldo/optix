@@ -1,7 +1,7 @@
 import {
+    last,
     all,
     keys,
-    at,
     find,
     findByKey,
     findByVal,
@@ -28,22 +28,17 @@ const userMap = {
 
 describe("The query functions", () => {
     describe("The array queries", () => {
+        it("has a last function", () => {
+            expect(last(posts)).toEqual(9)
+        })
+
         it("has an all function", () => {
             expect(all(posts)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         })
 
-        it("has an at function", () => {
-            expect(at(0)(posts)).toEqual(0)
-            expect(at(1)(posts)).toEqual(1)
-            expect(at(-1)(posts)).toEqual(9)
-            expect(at(-2)(posts)).toEqual(8)
-        })
-
         it("has a find function", () => {
             expect(find((post: { id: number }) => post.id === 4)(posts)).toBe(4)
-            expect(find<typeof posts>((post) => post.id === 420)(posts)).toBe(
-                undefined
-            )
+            expect(find<typeof posts>((post) => post.id === 420)(posts)).toBe(-1)
         })
 
         it("has a filter function", () => {

@@ -1,16 +1,17 @@
 type Predicate<T> = (item: T) => unknown
 type UnwrapArray<T> = T extends Array<infer U> ? U : T
 
+export const last = (arr: any[]): number => arr.length - 1
+
 export const all = (arr: any[]): number[] => arr.map((_, i) => i)
 
 export const keys: (obj: { [key: string]: any }) => string[] = Object.keys
 
-export const at = (index: number) => (arr: any[]): number => index < 0 ? arr.length + index : index
-
-export const find = <T extends any[]>(predicate: Predicate<UnwrapArray<T>>) => (arr: T): number | undefined => {
+export const find = <T extends any[]>(predicate: Predicate<UnwrapArray<T>>) => (arr: T): number => {
     for (let i = 0; i < arr.length; i++) {
         if (predicate(arr[i])) return i
     }
+    return -1
 }
 
 export const findByKey = <T extends { [key: string]: any }>(predicate: Predicate<Extract<keyof T, string>>) => (obj: T): string | undefined => {
