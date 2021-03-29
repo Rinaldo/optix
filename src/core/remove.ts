@@ -13,7 +13,8 @@ export const remove: BaseRemove = (obj: any, path: any[]) => {
             ? resolved
             : []
     // check for invalid path
-    if (keysToRemove[0] == null || keysToRemove[0] < 0) {
+    const typeofKey0 = typeof keysToRemove[0]
+    if ((typeofKey0 !== "string" && typeofKey0 !== "number") || keysToRemove[0] < 0) {
         return obj
     }
     if (path.length === 1) {

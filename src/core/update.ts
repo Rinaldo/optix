@@ -18,10 +18,11 @@ export const update: BaseUpdate = (
             ? resolved
             : []
     // check for invalid path
-    if (keysToUpdate[0] == null || keysToUpdate[0] < 0) {
+    const typeofKey0 = typeof keysToUpdate[0]
+    if ((typeofKey0 !== "string" && typeofKey0 !== "number") || keysToUpdate[0] < 0) {
         return obj
     }
-    const treatObjAsArray = typeof keysToUpdate[0] === "number"
+    const treatObjAsArray = typeofKey0 === "number"
     const newObj: any =
         obj && typeof obj === "object"
             ? treatObjAsArray

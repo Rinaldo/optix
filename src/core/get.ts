@@ -8,9 +8,7 @@ export const get: BaseGet = (obj: any, path: any[]) => {
     const resolved =
         typeof path[0] === "function" ? path[0](obj as any) : path[0]
 
-    return resolved == null
-        ? undefined
-        : Array.isArray(resolved)
+    return Array.isArray(resolved)
         ? (resolved as any[]).map((idx) =>
               obj != null ? get(obj[idx], slicedPath) : undefined
           )
