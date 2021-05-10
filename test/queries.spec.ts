@@ -38,7 +38,9 @@ describe("The query functions", () => {
 
         it("has a find function", () => {
             expect(find((post: { id: number }) => post.id === 4)(posts)).toBe(4)
-            expect(find<typeof posts>((post) => post.id === 420)(posts)).toBe(-1)
+            expect(find<typeof posts>((post) => post.id === 420)(posts)).toBe(
+                -1
+            )
         })
 
         it("has a filter function", () => {

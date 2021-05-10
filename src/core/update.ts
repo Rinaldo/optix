@@ -1,8 +1,8 @@
-import { BaseUpdate } from "../types"
+import { _Update } from "../types"
 
-export const update: BaseUpdate = (
+export const _update: _Update = (
     obj: any,
-    path: any[],
+    path: readonly any[],
     updater: (arg: any) => any
 ) => {
     if (!path.length) {
@@ -19,7 +19,10 @@ export const update: BaseUpdate = (
             : []
     // check for invalid path
     const typeofKey0 = typeof keysToUpdate[0]
-    if ((typeofKey0 !== "string" && typeofKey0 !== "number") || keysToUpdate[0] < 0) {
+    if (
+        (typeofKey0 !== "string" && typeofKey0 !== "number") ||
+        keysToUpdate[0] < 0
+    ) {
         return obj
     }
     const treatObjAsArray = typeofKey0 === "number"
@@ -33,7 +36,7 @@ export const update: BaseUpdate = (
             : {}
 
     for (let i = 0; i < keysToUpdate.length; i++) {
-        newObj[keysToUpdate[i]] = update(
+        newObj[keysToUpdate[i]] = _update(
             newObj[keysToUpdate[i]],
             slicedPath,
             updater

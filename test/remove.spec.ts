@@ -1,9 +1,24 @@
-import { remove, all, find, filter } from "../src"
+import { remove, all, find, filter, polyRemove } from "../src"
 
-const nested = { a: { b: { c: { d: { e: { f: true } } } } } }
-const user = {
-    name: "user",
+interface User {
+    name: {
+        first?: string
+        last?: string
+    }
+    age: number
+    active?: boolean
+    posts: {
+        title: string
+        tags?: string[]
+    }[]
+}
+
+const user: User = {
+    name: {
+        first: "Alice",
+    },
     age: 22,
+    active: true,
     posts: [
         {
             title: "Tea with the Hatter",
@@ -26,13 +41,15 @@ const user = {
 
 describe("The remove function", () => {
     it("can remove single items", () => {
-        const a = remove("a", "b", "c")(nested)
-        expect(a).toEqual({ a: { b: {} } })
+        const a: User = remove("name", "first")(user)
+        expect(a).toEqual({
+            ...user,
+            name: {},
+        })
 
-        const b = remove("posts", 0, "tags", 0)(user)
+        const b: User = remove("posts", 0, "tags", 0)(user)
         expect(b).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [
                 {
                     title: "Tea with the Hatter",
@@ -52,13 +69,17 @@ describe("The remove function", () => {
                 },
             ],
         })
+
+        const c: User = remove("active")(user)
+        const copy = { ...user }
+        delete copy.active
+        expect(c).toEqual(copy)
     })
 
     it("can remove multiple items", () => {
-        const a = remove("posts", [0, 1, 3])(user)
+        const a: User = remove("posts", [0, 1, 3])(user)
         expect(a).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [
                 {
                     title: "bar",
@@ -67,10 +88,10 @@ describe("The remove function", () => {
             ],
         })
 
+        // unknown
         const b = remove("posts", [0, 1, 3], "title")(user)
         expect(b).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [
                 {
                     tags: ["wonderland"],
@@ -88,10 +109,9 @@ describe("The remove function", () => {
             ],
         })
 
-        const c = remove("posts", [0, 1, 2, 3], "tags", 0)(user)
+        const c: User = remove("posts", [0, 1, 2, 3], "tags", 0)(user)
         expect(c).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [
                 {
                     title: "Tea with the Hatter",
@@ -123,7 +143,7 @@ describe("The remove function", () => {
             ],
         ]
 
-        const d = remove(0, [0, 1], 0)(nestedArr)
+        const d: boolean[][][] = remove(0, [0, 1], 0)(nestedArr)
         expect(d).toEqual([
             [[true], [false]],
             [
@@ -134,14 +154,14 @@ describe("The remove function", () => {
     })
 
     it("works with the helper functions", () => {
+        // unknown
         const a = remove(
             "posts",
             find<typeof user.posts>((post) => post.title === "foo"),
             "title"
         )(user)
         expect(a).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [
                 {
                     title: "Tea with the Hatter",
@@ -161,13 +181,12 @@ describe("The remove function", () => {
             ],
         })
 
-        const b = remove(
+        const b: User = remove(
             "posts",
             filter<typeof user.posts>((post) => post.title.length === 3)
         )(user)
         expect(b).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [
                 {
                     title: "Tea with the Hatter",
@@ -176,10 +195,9 @@ describe("The remove function", () => {
             ],
         })
 
-        const c = remove("posts", all)(user)
+        const c: User = remove("posts", all)(user)
         expect(c).toEqual({
-            name: "user",
-            age: 22,
+            ...user,
             posts: [],
         })
     })
@@ -195,30 +213,68 @@ describe("The remove function", () => {
         expect(c).toEqual(user)
     })
 
-    it("supports removing optional keys", () => {
-        const partialuser: Partial<typeof user> = user
-        const a = remove("name")(partialuser)
-        expect(a.name).toEqual(undefined)
+    it("supports removing keys from index types", () => {
+        type Bools = Record<string, boolean>
+        const dict: Bools = {
+            foo: true,
+            bar: true,
+            baz: true,
+        }
+        const a: Bools = remove("bar")(dict)
+        expect(a).toEqual({ foo: true, baz: true })
+
+        const b: Bools = remove(["bar", "baz"])(dict)
+        expect(b).toEqual({ foo: true })
     })
 
     it("handles empty or invalid paths", () => {
-        const a = remove("posts", -1)(user)
+        const a: User = remove("posts", -1)(user)
         expect(a).toEqual(user)
 
-        const b = remove("posts", [] as number[])(user)
+        const b: User = remove("posts", [] as number[])(user)
         expect(b).toEqual(user)
 
+        // unknown
         const c = remove("posts", [] as number[], "title")(user)
         expect(c).toEqual(user)
 
-        const t4 = remove(
-            "posts",
-            (undefined as unknown) as number,
-            "title"
-        )(user)
-        expect(t4).toEqual(user)
+        // unknown
+        const d = remove("posts", undefined as unknown as number, "title")(user)
+        expect(d).toEqual(user)
 
-        const t5 = remove([] as number[])(user.posts)
-        expect(t5).toBe(user.posts)
+        const e: User["posts"] = remove([] as number[])(user.posts)
+        expect(e).toBe(user.posts)
+
+        const f = (remove as any)()(user)
+        expect(f).toBe(user)
+    })
+})
+
+describe("the polyRemove function", () => {
+    it("has correct typings", () => {
+        const name = {
+            first: "",
+            last: "",
+        }
+        const a: { last: string } = polyRemove("first")(name)
+        const dict = {
+            foo: true,
+            bar: true,
+            baz: true,
+        }
+        const b: { foo: boolean; baz: boolean } = polyRemove("bar")(dict)
+        const c: Record<string, boolean> = polyRemove(["bar"])(dict)
+        const d: Record<string, boolean> = polyRemove("bar")(
+            dict as Record<string, boolean>
+        )
+        const e: Record<string, boolean> = polyRemove(["bar"])(
+            dict as Record<string, boolean>
+        )
+
+        const f: typeof dict[] = polyRemove(0)([dict])
+
+        const g = polyRemove(0, "bar")([dict]) // bar property should still exist and be optional
+
+        expect([a, b, c, d, e, f, g]).toBeTruthy()
     })
 })

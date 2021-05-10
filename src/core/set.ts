@@ -1,5 +1,5 @@
-import { BaseSet } from "../types"
-import { update } from "./update"
+import { _Set } from "../types"
+import { _update } from "./update"
 
-export const set: BaseSet = (object: any, path: any[], value: any) =>
-    update(object, path, () => value)
+export const _set: _Set = (object: any, path: readonly any[], value: any) =>
+    _update(object, path, () => value)

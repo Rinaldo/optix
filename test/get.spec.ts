@@ -254,5 +254,8 @@ describe("The get function", () => {
             "title"
         )(user)
         expect(e).toEqual([undefined])
+
+        const f = (get as any)()(user)
+        expect(f).toBe(user)
     })
 })

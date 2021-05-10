@@ -1,5 +1,5 @@
+import { Unarray } from "./types/common"
 type Predicate<T> = (item: T) => unknown
-type UnwrapArray<T> = T extends Array<infer U> ? U : T
 
 export const last = (arr: any[]): number => arr.length - 1
 
@@ -7,7 +7,7 @@ export const all = (arr: any[]): number[] => arr.map((_, i) => i)
 
 export const keys: (obj: { [key: string]: any }) => string[] = Object.keys
 
-export const find = <T extends any[]>(predicate: Predicate<UnwrapArray<T>>) => (arr: T): number => {
+export const find = <T extends any[]>(predicate: Predicate<Unarray<T>>) => (arr: T): number => {
     for (let i = 0; i < arr.length; i++) {
         if (predicate(arr[i])) return i
     }
@@ -22,7 +22,7 @@ export const findByKey = <T extends { [key: string]: any }>(predicate: Predicate
 
 export const findByVal = <T extends { [key: string]: any }>(predicate: Predicate<T[keyof T]>) => (obj: T): string | undefined => findByKey<T>(key => predicate(obj[key]))(obj)
 
-export const filter = <T extends any[]>(predicate: Predicate<UnwrapArray<T>>) => (arr: T): number[] => {
+export const filter = <T extends any[]>(predicate: Predicate<Unarray<T>>) => (arr: T): number[] => {
     const filtered: number[] = []
     for (let i = 0; i < arr.length; i++) {
         if (predicate(arr[i])) filtered.push(i)

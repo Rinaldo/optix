@@ -1,4 +1,4 @@
-import { update, all, filter } from "../src"
+import { update, all, filter, polyUpdate } from "../src"
 
 const nested = { a: { b: { c: { d: { e: { f: true } } } } } }
 const user = {
@@ -96,9 +96,12 @@ describe("The update function", () => {
             ],
         })
 
-        const b: typeof user = update("posts", [1, 3], "tags", [1, 2])<string>(
-            (tag) => tag.toUpperCase()
-        )(user)
+        const b: typeof user = update(
+            "posts",
+            [1, 3],
+            "tags",
+            [1, 2]
+        )<string>((tag) => tag.toUpperCase())(user)
         expect(b).toEqual({
             name: "Alice",
             age: 22,
@@ -133,9 +136,11 @@ describe("The update function", () => {
             ],
         ]
 
-        const c: typeof nestedArr = update([0, 1], 1, [0, 1])<boolean>(
-            (bool) => !bool
-        )(nestedArr)
+        const c: typeof nestedArr = update(
+            [0, 1],
+            1,
+            [0, 1]
+        )<boolean>((bool) => !bool)(nestedArr)
         expect(c).toEqual([
             [
                 [true, true],
@@ -206,103 +211,27 @@ describe("The update function", () => {
         })
     })
 
-    it("can update values for keys for not present in the object (without typings, updater will be passed undefined)", () => {
-        const untypedUpdate: any = update
-
-        const a = untypedUpdate("foo")(() => 42)(user)
-        expect(a).toEqual({
-            ...user,
-            foo: 42,
-        })
-
-        const b = untypedUpdate("foo", "bar", "baz")(() => true)(user)
-        expect(b).toEqual({
-            ...user,
-            foo: { bar: { baz: true } },
-        })
-
-        const c = untypedUpdate("arr", 0, "nested", 0, "inner")(() => true)(
-            user
-        )
-        expect(c).toEqual({
-            ...user,
-            arr: [{ nested: [{ inner: true }] }],
-        })
-
-        const mock = jest.fn()
-        untypedUpdate("foo")(mock)(user)
-        expect(mock).toHaveBeenCalledWith(undefined)
-    })
-
-    it("can change the type of values (without typings)", () => {
-        const untypedUpdate: any = update
-        const mock = jest.fn().mockReturnValue("test")
-
-        const a = untypedUpdate("age")(mock)(user)
-        expect(a).toEqual({
-            ...user,
-            age: "test",
-        })
-        expect(mock).toHaveBeenLastCalledWith(22)
-
-        const b = untypedUpdate("name", "foo")(mock)(user)
-        expect(b).toEqual({
-            ...user,
-            name: { foo: "test" },
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        const c = untypedUpdate("name", 0)(mock)(user)
-        expect(c).toEqual({
-            ...user,
-            name: ["test"],
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        const d = untypedUpdate("name", 0, "foo")(mock)(user)
-        expect(d).toEqual({
-            ...user,
-            name: [{ foo: "test" }],
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        const e = untypedUpdate("age", "foo")(mock)(user)
-        expect(e).toEqual({
-            ...user,
-            age: { foo: "test" },
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        const f = untypedUpdate("ref", "foo")(mock)(user)
-        expect(f).toEqual({
-            ...user,
-            ref: { foo: "test" },
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        const g = untypedUpdate("ref", 0)(mock)(user)
-        expect(g).toEqual({
-            ...user,
-            ref: ["test"],
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        const h = untypedUpdate("fn", "foo")(mock)(user)
-        expect(h).toEqual({
-            ...user,
-            fn: { foo: "test" },
-        })
-        expect(mock).toHaveBeenLastCalledWith(undefined)
-
-        expect(mock).toHaveBeenCalledTimes(8)
-    })
-
     it("supports updating optional keys", () => {
         const partialUser: Partial<typeof user> = user
         const a = update("name")<string>((name) => name.toUpperCase())(
             partialUser
         )
         expect(a.name).toBe("ALICE")
+
+        interface Name {
+            first?: string
+            last?: string
+        }
+        const nestedName: { name: Name } = {
+            name: {
+                first: "Alice",
+                last: "A",
+            },
+        }
+        const b: { name: Name } = update("name")((name: { first: string }) => ({
+            first: name.first?.toUpperCase() || "",
+        }))(nestedName)
+        expect(b.name.first).toBe("ALICE")
     })
 
     it("handles empty or invalid paths", () => {
@@ -322,7 +251,7 @@ describe("The update function", () => {
 
         const t5 = update(
             "posts",
-            (undefined as unknown) as number,
+            undefined as unknown as number,
             "title"
         )(mock)(user)
         expect(t5).toEqual(user)
@@ -331,5 +260,104 @@ describe("The update function", () => {
         expect(t6).toBe(user.posts)
 
         expect(mock).not.toHaveBeenCalled()
+
+        const t7 = (update as any)()(() => "test")(user)
+        expect(t7).toBe("test")
+    })
+})
+
+describe("the polyUpdate function", () => {
+    it("supports adding keys to the object", () => {
+        const a: typeof user & { foo: number } = polyUpdate("foo")(() => 42)(
+            user
+        )
+        expect(a).toEqual({
+            ...user,
+            foo: 42,
+        })
+
+        const b: typeof user & { foo: { bar: { baz: boolean } } } = polyUpdate(
+            "foo",
+            "bar",
+            "baz"
+        )(() => true)(user)
+        expect(b).toEqual({
+            ...user,
+            foo: { bar: { baz: true } },
+        })
+
+        const c: typeof user & {
+            arr: { nested: { inner: boolean }[] }[]
+        } = polyUpdate("arr", 0, "nested", 0, "inner")(() => true)(user)
+        expect(c).toEqual({
+            ...user,
+            arr: [{ nested: [{ inner: true }] }],
+        })
+
+        const mock = jest.fn()
+        polyUpdate("foo")(mock)(user)
+        expect(mock).toHaveBeenCalledWith(undefined)
+    })
+
+    it("can change the type of existing values", () => {
+        const mock: (arg: any) => string = jest.fn().mockReturnValue("test")
+
+        const a = polyUpdate("age")(mock)(user)
+        expect(a).toEqual({
+            ...user,
+            age: "test",
+        })
+        expect(mock).toHaveBeenLastCalledWith(22)
+
+        const b = polyUpdate("name", "foo")(mock)(user)
+        expect(b).toEqual({
+            ...user,
+            name: { foo: "test" },
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        const c = polyUpdate("name", 0)(mock)(user)
+        expect(c).toEqual({
+            ...user,
+            name: ["test"],
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        const d = polyUpdate("name", 0, "foo")(mock)(user)
+        expect(d).toEqual({
+            ...user,
+            name: [{ foo: "test" }],
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        const e = polyUpdate("age", "foo")(mock)(user)
+        expect(e).toEqual({
+            ...user,
+            age: { foo: "test" },
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        const f = polyUpdate("ref", "foo")(mock)(user)
+        expect(f).toEqual({
+            ...user,
+            ref: { foo: "test" },
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        const g = polyUpdate("ref", 0)(mock)(user)
+        expect(g).toEqual({
+            ...user,
+            ref: ["test"],
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        const h = polyUpdate("fn", "foo")(mock)(user)
+        expect(h).toEqual({
+            ...user,
+            fn: { foo: "test" },
+        })
+        expect(mock).toHaveBeenLastCalledWith(undefined)
+
+        expect(mock).toHaveBeenCalledTimes(8)
     })
 })

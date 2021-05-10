@@ -1,6 +1,6 @@
-import { BaseRemove } from "../types"
+import { _Remove } from "../types"
 
-export const remove: BaseRemove = (obj: any, path: any[]) => {
+export const _remove: _Remove = (obj: any, path: readonly any[]) => {
     if (!path.length || !obj || typeof obj !== "object") {
         return obj
     }
@@ -14,7 +14,10 @@ export const remove: BaseRemove = (obj: any, path: any[]) => {
             : []
     // check for invalid path
     const typeofKey0 = typeof keysToRemove[0]
-    if ((typeofKey0 !== "string" && typeofKey0 !== "number") || keysToRemove[0] < 0) {
+    if (
+        (typeofKey0 !== "string" && typeofKey0 !== "number") ||
+        keysToRemove[0] < 0
+    ) {
         return obj
     }
     if (path.length === 1) {
@@ -40,7 +43,7 @@ export const remove: BaseRemove = (obj: any, path: any[]) => {
         for (let i = 0; i < keysToRemove.length; i++) {
             const keyToRemove = keysToRemove[i]
             if ({}.hasOwnProperty.call(newObj, keyToRemove)) {
-                newObj[keyToRemove] = remove(newObj[keyToRemove], slicedPath)
+                newObj[keyToRemove] = _remove(newObj[keyToRemove], slicedPath)
             }
         }
         return newObj

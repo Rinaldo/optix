@@ -1,6 +1,6 @@
-import { BaseGet } from "../types"
+import { _Get } from "../types"
 
-export const get: BaseGet = (obj: any, path: any[]) => {
+export const _get: _Get = (obj: any, path: readonly any[]) => {
     if (!path.length) {
         return obj
     }
@@ -10,9 +10,9 @@ export const get: BaseGet = (obj: any, path: any[]) => {
 
     return Array.isArray(resolved)
         ? (resolved as any[]).map((idx) =>
-              obj != null ? get(obj[idx], slicedPath) : undefined
+              obj != null ? _get(obj[idx], slicedPath) : undefined
           )
         : obj != null
-        ? get(obj[resolved], slicedPath)
+        ? _get(obj[resolved], slicedPath)
         : undefined
 }
